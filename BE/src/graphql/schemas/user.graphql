@@ -1,0 +1,30 @@
+type User {
+  address: String!
+  userName: String
+  currentGold: Int
+  currentSilver: Int
+  currentBronze: Int
+  currentNFT: Int
+  currentBoxesOwned: [CurrentBoxOwned]
+  runHistory: [runTime]
+}
+
+type CurrentBoxOwned {
+  boxType: Box!
+  quantity: Int
+}
+
+type runTime {
+  date: String
+  steps: Int
+}
+
+type Query {
+  users: [User]
+  userById(id: String!): User
+  userByAdress(address: String!): User
+}
+
+type Mutation {
+  
+}

@@ -1,0 +1,11 @@
+type Box {
+  goldChance: Int
+  silverChance: Int
+  bronzeChance: Int
+  price: Float
+}
+
+type Query {
+  boxes: [User]
+  box(id: String!): Box
+}
