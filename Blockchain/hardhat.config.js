@@ -22,6 +22,10 @@ module.exports = {
             privateKey: process.env.ACC1_PRIVATE_KEY,
             balance: '10000000000000000000000',
           },
+          {
+            privateKey: process.env.ACC2_PRIVATE_KEY,
+            balance: '10000000000000000000000',
+          },
         ],
     },
   },

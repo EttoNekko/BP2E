@@ -10,5 +10,5 @@ module.exports = {
     userById: (root, args, context, info) => getUserById(args),
     userByAdress: (root, args, context, info) => getUserByAddres(args),
   },
-  Mutation: {},
+  // Mutation: {},
 };

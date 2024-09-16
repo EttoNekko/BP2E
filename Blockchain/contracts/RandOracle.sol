@@ -4,7 +4,7 @@ pragma solidity ^0.8.24;
 import "@openzeppelin/contracts/access/AccessControl.sol";
 
 interface ICaller {
-    function givePieces(address callerAddress, uint8 boxType, uint256 randomNumber, uint256 id) external;
+    function givePieces(uint256 randomNumber, uint256 id) external;
 }
 
 contract RandOracle is AccessControl {
@@ -15,7 +15,7 @@ contract RandOracle is AccessControl {
 
     uint256 private randNonce = 0;
 
-    mapping(uint256=>bool) private pendingRequests;
+    mapping(uint256 => bool) private pendingRequests;
 
     struct Response {
         address callerAddress;
@@ -23,10 +23,10 @@ contract RandOracle is AccessControl {
         uint256 randomNumber;
     }
 
-    mapping(uint256=>Response[]) private idToResponses;
+    mapping(uint256 => Response[]) private idToResponses;
 
     // Events
-    event RandomNumberRequested(address callerAddress, uint id, uint8 boxType);
+    event RandomNumberRequested(address callerAddress, uint id);
     event RandomNumberReturned(uint256 randomNumber, address callerAddress, uint id);
     event ProviderAdded(address providerAddress);
     event ProviderRemoved(address providerAddress);
@@ -46,7 +46,7 @@ contract RandOracle is AccessControl {
 
     // Admin functions
     function addProvider(address provider) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        if(hasRole(PROVIDER_ROLE, provider)) revert ProviderAlreadyAdded(provider);
+        if (hasRole(PROVIDER_ROLE, provider)) revert ProviderAlreadyAdded(provider);
 
         _grantRole(PROVIDER_ROLE, provider);
         numProviders++;
@@ -55,8 +55,8 @@ contract RandOracle is AccessControl {
     }
 
     function removeProvider(address provider) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        if(!hasRole(PROVIDER_ROLE, provider)) revert AddressNotProvider(provider);
-        if(numProviders <= 1) revert OnlyProviderNoRemove(provider);
+        if (!hasRole(PROVIDER_ROLE, provider)) revert AddressNotProvider(provider);
+        if (numProviders <= 1) revert OnlyProviderNoRemove(provider);
 
         _revokeRole(PROVIDER_ROLE, provider);
         numProviders--;
@@ -65,25 +65,29 @@ contract RandOracle is AccessControl {
     }
 
     function setProvidersThreshold(uint8 threshold) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        if(threshold <= 0) revert ZeroThresholdInvalid(threshold);
+        if (threshold <= 0) revert ZeroThresholdInvalid(threshold);
 
         providersThreshold = threshold;
         emit ProvidersThresholdChanged(providersThreshold);
     }
 
-    function requestRandomNumber(uint8 boxType) external returns (uint256) {
-        if(numProviders <= 0) revert NoProviderAdded();
+    function requestRandomNumber() external returns (uint256) {
+        if (numProviders <= 0) revert NoProviderAdded();
 
         randNonce++;
         uint id = uint(keccak256(abi.encodePacked(block.timestamp, msg.sender, randNonce))) % 10000;
         pendingRequests[id] = true;
 
-        emit RandomNumberRequested(msg.sender, id, boxType);
+        emit RandomNumberRequested(msg.sender, id);
         return id;
     }
 
-    function returnRandomNumber(uint256 id, uint8 boxType, uint256 randomNumber, address callerAddress) external onlyRole(PROVIDER_ROLE) {
-        if(!pendingRequests[id]) revert RequestNotFound(id);
+    function returnRandomNumber(
+        address callerAddress,
+        uint256 id,
+        uint256 randomNumber
+    ) external onlyRole(PROVIDER_ROLE) {
+        if (!pendingRequests[id]) revert RequestNotFound(id);
 
         // Add newest response to list
         Response memory res = Response(callerAddress, msg.sender, randomNumber);
@@ -95,7 +99,7 @@ contract RandOracle is AccessControl {
             uint compositeRandomNumber = 0;
 
             // Loop through the array and combine responses
-            for (uint i=0; i < idToResponses[id].length; i++) {
+            for (uint i = 0; i < idToResponses[id].length; ++i) {
                 compositeRandomNumber = compositeRandomNumber ^ idToResponses[id][i].randomNumber; // bitwise XOR
             }
 
@@ -104,7 +108,7 @@ contract RandOracle is AccessControl {
             delete idToResponses[id];
 
             // Fulfill request
-            ICaller(callerAddress).givePieces(callerAddress, boxType, compositeRandomNumber, id);
+            ICaller(callerAddress).givePieces(compositeRandomNumber, id);
 
             emit RandomNumberReturned(compositeRandomNumber, callerAddress, id);
         }

@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require('path');
 const cors = require('cors');
+const mongoose = require('mongoose');
 // const { buildSchema } = require('graphql');
 // const { graphqlHTTP } = require('express-graphql');
 const { makeExecutableSchema } = require('@graphql-tools/schema');
@@ -10,6 +11,8 @@ const { ruruHTML } = require('ruru/server');
 
 require('dotenv').config();
 
+require('./services/randomNumber');
+
 const PORT = process.env.PORT || 3000;
 
 const app = express();
@@ -18,6 +21,16 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+const connectionURL = process.env.mongoDB_connection_URL;
+mongoose
+  .connect(connectionURL)
+  .then(() => {
+    console.log('connection to mongodb successfully');
+  })
+  .catch(() => {
+    console.log('connect to DB failed');
+  });
 
 const schema = makeExecutableSchema({
   typeDefs: loadFilesSync(path.join(__dirname, '**/**/*.graphql')),

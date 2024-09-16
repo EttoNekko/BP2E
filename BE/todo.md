@@ -9,3 +9,5 @@ virtual?
 
 # GraphQL
 how to send HTTP request with graphql
+
+mutation uncomment

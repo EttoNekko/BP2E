@@ -3,7 +3,6 @@ import { providers, utils, Contract } from 'ethers';
 import { userInfo } from '../context/UserContext';
 import pieceGeneratorAbi from '../contracts/PieceGeneratorAbi';
 import BoxDetail from '../components/BoxDetail';
-import { formatIntFromChain } from '../utils/format';
 
 const BoxPage = () => {
   const { user, account, setAccount, blockchain } = userInfo();
@@ -25,8 +24,9 @@ const BoxPage = () => {
     for (let i = 0; i < boxTypeCount; i++) {
       let { GOLD, SILVER, BRONZE, price } =
         await pieceGeneratorContract.boxTypes(i);
-      let quantity = formatIntFromChain(
+      let quantity = utils.formatUnits(
         await pieceGeneratorContract.boxesOwned(signerAddress, i),
+        0,
       );
       currentBoxesOwned.push({
         boxId: i,

@@ -5,16 +5,21 @@ decide on change pages effect
 
 ## HomePage
 
+connect with database and show account info
+disable combine when having transaction
 metamask network connect refuse popup
-
-connect with database/blockchain and show account info
 
 ## BoxDetail
 
-blur background
 blur offset nav bar
+condition before buy and open
+
+pop up for piece get
+transaction pending => transaction chain
 
 ## global
+
+turn off event how
 
 popup noti design for screen
 

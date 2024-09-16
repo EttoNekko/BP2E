@@ -2,13 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { providers, Contract } from 'ethers';
 import { userInfo } from '../context/UserContext';
 import { Link } from 'react-router-dom';
-import pieceGeneratorAbi from '../contracts/PieceGeneratorAbi';
-import moneyGeneratorAbi from '../contracts/MoneyGeneratorAbi';
-import { formatIntFromChain } from '../utils/format';
 
-const NavBar = ({ context }) => {
-  const { user, setUser, account, setAccount, blockchain, setBlockchain } =
-    userInfo();
+const NavBar = () => {
+  const { user, setUser, account, setAccount } = userInfo();
   const [dropDown, setDropDown] = useState(true);
 
   const provider = new providers.Web3Provider(window.ethereum);

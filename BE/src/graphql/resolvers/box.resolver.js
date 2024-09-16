@@ -5,5 +5,5 @@ module.exports = {
     boxes: (root, args, context, info) => getBoxes(),
     box: (root, args, context, info) => getBox(args),
   },
-  Mutation: {},
+  // Mutation: {},
 };
