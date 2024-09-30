@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const cors = require('cors');
@@ -6,12 +7,16 @@ const mongoose = require('mongoose');
 // const { graphqlHTTP } = require('express-graphql');
 const { makeExecutableSchema } = require('@graphql-tools/schema');
 const { loadFilesSync } = require('@graphql-tools/load-files');
-const { createHandler } = require('graphql-http');
+const { createHandler } = require('graphql-http/lib/use/express');
 const { ruruHTML } = require('ruru/server');
 
-require('dotenv').config();
+const resTemplate = require('./utils/responseTemplate');
+
+const userRouter = require('./routes/userRouter');
 
 require('./services/randomNumber');
+require('./services/box');
+// require('./services/cronJob');
 
 const PORT = process.env.PORT || 3000;
 
@@ -32,6 +37,8 @@ mongoose
     console.log('connect to DB failed');
   });
 
+app.use('/user', userRouter);
+
 const schema = makeExecutableSchema({
   typeDefs: loadFilesSync(path.join(__dirname, '**/**/*.graphql')),
   resolvers: loadFilesSync(path.join(__dirname, '**/**/*.resolver.js')),
@@ -50,9 +57,13 @@ app.use('/graphi', (_req, res) => {
   res.end(ruruHTML({ endpoint: '/graphql' }));
 });
 
-// app.use((err, req, res, next) => {
-//   return resTemplate.response_error(res, resTemplate.INTERNAL_SERVER_ERROR, err);
-// })
+app.use((err, req, res, next) => {
+  return resTemplate.response_error(
+    res,
+    resTemplate.INTERNAL_SERVER_ERROR,
+    err,
+  );
+});
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);

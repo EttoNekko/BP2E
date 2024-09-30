@@ -38,31 +38,6 @@ async function main() {
   console.log('moneyGenerator: ' + (await moneyGenerator.getAddress()));
   console.log('pieceGenerator: ' + (await pieceGenerator.getAddress()));
   console.log('randOracle: ' + (await randOracle.getAddress()));
-
-  const boxInfo = {
-    GOLD: 10,
-    SILVER: 0,
-    BRONZE: 0,
-    price: ethers.parseEther('5'),
-  };
-
-  await pieceGenerator.addBoxType(boxInfo);
-  await pieceGenerator.addBoxType({
-    ...boxInfo,
-    SILVER: 7,
-    BRONZE: 4,
-    price: ethers.parseEther('3'),
-  });
-  await pieceGenerator.addBoxType({
-    ...boxInfo,
-    SILVER: 7,
-    BRONZE: 3,
-    price: ethers.parseEther('1'),
-  });
-  console.log('box type count: ' + (await pieceGenerator.boxTypeCount()));
-  console.log('box type 1: ' + (await pieceGenerator.boxTypes(0)));
-  console.log('box type 2: ' + (await pieceGenerator.boxTypes(1)));
-  console.log('box type 3: ' + (await pieceGenerator.boxTypes(2)));
 }
 
 main()

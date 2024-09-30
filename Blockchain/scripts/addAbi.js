@@ -2,12 +2,9 @@ const { artifacts } = require('hardhat');
 const { writeFile, writeFileSync } = require('fs');
 const { resolve } = require('path');
 
-async function extractAbi(folder, contractName, moduleExport) {
-  const pathTofile = resolve(
-    __dirname,
-    `../../${folder}/src/contracts/${contractName}Abi.js`,
-  );
-  console.log(`extract ${contractName}Abi to ${folder}`);
+async function extractAbi(path, contractName, moduleExport) {
+  const pathTofile = resolve(__dirname, `../../${path}/${contractName}Abi.js`);
+  console.log(`extract ${contractName}Abi to ${path}`);
 
   const contract = await artifacts.readArtifact(`${contractName}`);
   const { abi } = contract;
@@ -23,15 +20,17 @@ async function extractAbi(folder, contractName, moduleExport) {
 }
 
 async function main() {
-  await extractAbi('BE', 'MyMoney', 'module.exports = ');
-  await extractAbi('BE', 'MoneyGenerator', 'module.exports = ');
-  await extractAbi('BE', 'PieceGenerator', 'module.exports = ');
-  await extractAbi('BE', 'RandOracle', 'module.exports = ');
+  const BE = 'BE/src/contracts';
+  await extractAbi(BE, 'MyMoney', 'module.exports = ');
+  await extractAbi(BE, 'MoneyGenerator', 'module.exports = ');
+  await extractAbi(BE, 'PieceGenerator', 'module.exports = ');
+  await extractAbi(BE, 'RandOracle', 'module.exports = ');
 
-  await extractAbi('FE', 'MyMoney', 'export default ');
-  await extractAbi('FE', 'MoneyGenerator', 'export default ');
-  await extractAbi('FE', 'PieceGenerator', 'export default ');
-  await extractAbi('FE', 'RandOracle', 'export default ');
+  const FE = 'FE/src/Blockchain/contracts/Abi';
+  await extractAbi(FE, 'MyMoney', 'export default ');
+  await extractAbi(FE, 'MoneyGenerator', 'export default ');
+  await extractAbi(FE, 'PieceGenerator', 'export default ');
+  await extractAbi(FE, 'RandOracle', 'export default ');
 
   // const pathToBEoracleAbi = resolve(
   //   __dirname,

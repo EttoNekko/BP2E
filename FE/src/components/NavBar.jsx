@@ -1,156 +1,260 @@
 import React, { useEffect, useState } from 'react';
-import { providers, Contract } from 'ethers';
-import { userInfo } from '../context/UserContext';
-import { Link } from 'react-router-dom';
+import { Button, Navbar } from 'flowbite-react';
+import { providers, utils, Contract } from 'ethers';
+import { useSelector, useDispatch } from 'react-redux';
+import { Link, useLocation } from 'react-router-dom';
+import axios from 'axios';
+import { gql, useMutation, useQuery } from '@apollo/client';
+import {
+  connectChainNetwork,
+  disconnectChainNetwork,
+  finishLoadingData,
+  loadingData,
+  login,
+  logout,
+} from '../redux/slices/userSlice';
+import { updateAddress, updateUserName, updateAccountData } from '../redux/slices/accountSlice';
+import { updateGameData } from '../redux/slices/gameSlice';
+import {
+  signerAddress,
+  connectToMetaMask,
+  connectNewSigner,
+  getAccountETHBalance,
+  connectToChainNetwork,
+} from '../Blockchain/Metamask';
+import {
+  getBoxInfo,
+  getBoxOwned,
+  getBoxTypeCount,
+  getCurrentPiece,
+  getPieceNeed,
+  getstepNeed,
+  getTotalStep,
+  pieceType,
+} from '../Blockchain/contracts/methods/pieceGenerator';
+import { getCurrentNFT, getMoneyPerNFT } from '../Blockchain/contracts/methods/moneyGenerator';
+import { getCurrentMoney } from '../Blockchain/contracts/methods/myMoney';
+import { mutateUserByAddress } from '../graphql/user.gql';
+
+const cNavBarTheme = {
+  root: { inner: { base: 'mx-auto flex flex-wrap md:flex-nowrap items-center justify-between' } },
+};
 
 const NavBar = () => {
-  const { user, setUser, account, setAccount } = userInfo();
-  const [dropDown, setDropDown] = useState(true);
+  const [checkUserByAddress] = useMutation(mutateUserByAddress);
 
-  const provider = new providers.Web3Provider(window.ethereum);
+  let location = useLocation();
 
-  //if user disconnect metamask after connect
-  const connectToMetaMask = async () => {
+  const dispatch = useDispatch();
+  const { isLogin, isLoading, chainNetworkConnected } = useSelector((state) => state.user);
+
+  const address = useSelector((state) => state.account.address);
+
+  const ClickConnectToMetaMask = async () => {
     //disable the connect button
-    await provider
-      .send('eth_requestAccounts', [])
-      .then(async () => {
-        const signer = provider.getSigner();
-        const newAccountAddress = await signer.getAddress();
-        setAccount({ ...account, address: newAccountAddress });
-        setUser({ ...user, isLogin: true });
-      })
-      .catch((err) => {
-        if (err.code === 4001) {
-          // EIP-1193 userRejectedRequest error.
-          // If this happens, the user rejected the connection request.
-          window.alert('Please connect to MetaMask.');
-          console.log('Please connect to MetaMask.');
-        } else {
-          window.alert(err);
-          console.log(err);
-        }
-      });
+    await connectToMetaMask().then(() => {
+      dispatch(updateAddress(signerAddress));
+      dispatch(login());
+    });
   };
 
-  const connectChainNetwork = async () => {
-    //get data about user from database
-    await provider
-      .send('wallet_switchEthereumChain', [
-        { chainId: import.meta.env.VITE_chainId },
-      ])
-      .then(setUser({ ...user, chainNetworkConnected: true }))
-      .catch(async (err) => {
-        if (err.code === 4902) {
-          await provider
-            .send('wallet_addEthereumChain', [
-              {
-                chainId: import.meta.env.VITE_chainId,
-                chainName: import.meta.env.VITE_chainName,
-                nativeCurrency: {
-                  decimals: parseInt(import.meta.env.VITE_currency_decimals),
-                  symbol: import.meta.env.VITE_currency_symbol,
-                },
-                rpcUrls: [import.meta.env.VITE_RPC_URL],
-                blockExplorerUrls: null,
-              },
-            ])
-            .then(setUser({ ...user, chainNetworkConnected: true }))
-            .catch((err) => {
-              window.alert(err.message);
-              setUser({ ...user, chainNetworkConnected: false });
-            });
-        }
-      });
+  const ClickConnectToChainNetwork = async () => {
+    await connectToChainNetwork().then(() => {
+      dispatch(connectChainNetwork());
+    });
   };
+
+  async function getAccountfromGraphql(input = {}) {
+    // const endPoint = import.meta.env.VITE_BE_URL + 'graphql';
+    // const headers = {
+    //   'content-type': 'application/json',
+    // };
+    // const graphqlQuery = {
+    //   query: `mutation ($address: String!, $input: UserInput = {}) { userByAddress(address: $address, input: $input) { _id userName currentGold currentSilver currentBronze currentNFT currentMoney currentBoxesOwned { boxId quantity } } }`,
+    //   variables: {
+    //     address: address,
+    //     input: input,
+    //   },
+    // };
+    // const response = await axios({
+    //   url: endPoint,
+    //   method: 'POST',
+    //   headers: headers,
+    //   data: graphqlQuery,
+    // }).catch((err) => {
+    //   window.alert(err);
+    // });
+    // console.log(response.data.data.userByAddress);
+    // return response.data.data.userByAddress;
+    const res = await checkUserByAddress({
+      variables: { address: address, input: input },
+    });
+    console.log(res.data.userByAddress);
+    return res.data.userByAddress;
+  }
+
+  async function getAccountInfo() {
+    dispatch(loadingData());
+
+    const [
+      balanceETH,
+      _currentGold,
+      _currentSilver,
+      _currentBronze,
+      _currentNFT,
+      _currentMoney,
+      _totalStep,
+    ] = await Promise.all([
+      getAccountETHBalance(),
+      getCurrentPiece(pieceType.Gold),
+      getCurrentPiece(pieceType.Silver),
+      getCurrentPiece(pieceType.Bronze),
+      getCurrentNFT(),
+      getCurrentMoney(),
+      getTotalStep(),
+    ]);
+
+    const [_goldNeed, _silverNeed, _bronzeNeed, _stepNeed, _moneyPerNFT] = await Promise.all([
+      getPieceNeed(pieceType.Gold),
+      getPieceNeed(pieceType.Silver),
+      getPieceNeed(pieceType.Bronze),
+      getstepNeed(),
+      getMoneyPerNFT(),
+    ]);
+
+    dispatch(
+      updateGameData({
+        goldNeed: _goldNeed,
+        silverNeed: _silverNeed,
+        bronzeNeed: _bronzeNeed,
+        stepNeed: _stepNeed,
+        moneyPerNFT: _moneyPerNFT,
+      }),
+    );
+
+    let _currentBoxesOwned = [];
+    const boxTypeCount = await getBoxTypeCount();
+    for (let i = 0; i < boxTypeCount; i++) {
+      let { GOLD, SILVER, BRONZE, price } = await getBoxInfo(i);
+      let quantity = await getBoxOwned(i);
+      _currentBoxesOwned.push({
+        boxId: i,
+        boxType: {
+          GOLD,
+          SILVER,
+          BRONZE,
+          price,
+        },
+        quantity,
+      });
+    }
+
+    dispatch(
+      updateAccountData({
+        balance: balanceETH,
+        currentGold: _currentGold,
+        currentSilver: _currentSilver,
+        currentBronze: _currentBronze,
+        currentNFT: _currentNFT,
+        currentMoney: _currentMoney,
+        totalStep: _totalStep,
+        currentBoxesOwned: _currentBoxesOwned,
+      }),
+    );
+
+    _currentBoxesOwned = _currentBoxesOwned.map((b) => {
+      return { boxId: b.boxId, quantity: b.quantity };
+    });
+
+    const { userName: _userName, gmail: _gmail } = await getAccountfromGraphql({
+      address: address,
+      currentGold: _currentGold,
+      currentSilver: _currentSilver,
+      currentBronze: _currentBronze,
+      currentNFT: _currentNFT,
+      currentMoney: _currentMoney,
+      currentBoxesOwned: _currentBoxesOwned,
+      totalStep: _totalStep,
+    });
+    dispatch(updateAccountData({ userName: _userName, gmail: _gmail ? _gmail : null }));
+
+    dispatch(finishLoadingData());
+  }
 
   useEffect(() => {
-    if (user.isLogin) {
-      connectChainNetwork();
+    if (isLogin && !chainNetworkConnected) {
+      ClickConnectToMetaMask().then(ClickConnectToChainNetwork);
     }
-  }, [user.isLogin]);
+  });
+
+  useEffect(() => {
+    if (isLogin && chainNetworkConnected) {
+      dispatch(loadingData());
+      connectNewSigner().then(getAccountInfo);
+    }
+  }, [isLogin, chainNetworkConnected]);
 
   return (
-    <>
-      <div className='sticky top-0'>
-        <nav className='relative flex h-16 w-screen items-center justify-between bg-blue-300 px-2'>
-          <a className='h-full'>
-            <img
-              src='src\assets\nik_cat.png'
-              alt='black thing'
-              className='inline h-full object-scale-down align-baseline'
-            />
-          </a>
+    <Navbar
+      fluid
+      rounded
+      theme={cNavBarTheme}
+      className='sticky top-0 z-40 border-b-2 border-gray-300 bg-gray-100 px-5 lg:px-32 xl:px-48'
+    >
+      <Navbar.Toggle />
+      <Navbar.Brand href='/'>
+        <img
+          src='src/assets/nik_cat.png'
+          className='mr-3 h-8 object-scale-down sm:h-12'
+          alt='black fat cat'
+        />
+        <span className='self-center whitespace-nowrap text-xl font-semibold dark:text-white sm:text-3xl'>
+          Play 2 Earn
+        </span>
+      </Navbar.Brand>
 
-          <button
-            type='button'
-            className='inline-flex items-center justify-center rounded-lg bg-gray-100 object-scale-down p-2 align-baseline text-sm text-gray-500 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 sm:hidden dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600'
-            aria-controls='navbar-default'
-            aria-expanded='false'
-            onClick={() => setDropDown(!dropDown)}
-          >
-            <span className='sr-only'>Open main menu</span>
-            <svg
-              className='h-5 w-5'
-              aria-hidden='true'
-              xmlns='http://www.w3.org/2000/svg'
-              fill='none'
-              viewBox='0 0 17 14'
-            >
-              <path
-                stroke='currentColor'
-                stroke-linecap='round'
-                stroke-linejoin='round'
-                stroke-width='2'
-                d='M1 1h15M1 7h15M1 13h15'
-              />
-            </svg>
-          </button>
-          <div className='hidden sm:visible sm:flex sm:w-1/2 sm:justify-evenly sm:gap-x-3'>
-            <Link
-              to='/'
-              className='place-content-center rounded-lg bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-gradient-to-br focus:outline-none focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-800'
-            >
-              Home
-            </Link>
-            <Link
-              to='/box'
-              className='place-content-center rounded-lg bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-gradient-to-br focus:outline-none focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-800'
-            >
-              Gacha
-            </Link>
-            {!user.isLogin ? (
-              <p
-                onClick={connectToMetaMask}
-                className='place-content-center text-nowrap rounded-lg bg-orange-400 px-5 py-2.5 text-center text-sm font-semibold hover:outline-green-600 hover:ring-4 hover:ring-green-600'
-              >
-                Connect to MetaMask
-              </p>
-            ) : (
-              <p className='place-content-center truncate text-nowrap rounded-lg bg-orange-400 px-5 py-2.5 text-center text-sm font-semibold hover:outline-green-600 hover:ring-4 hover:ring-green-600'>
-                {account.address}
-              </p>
-            )}
-          </div>
-        </nav>
-        {dropDown ? null : (
-          <div className='absolute right-0 flex w-fit flex-col items-end justify-around gap-y-3 rounded bg-slate-400 p-3 sm:hidden'>
-            <Link
-              to='/'
-              className='place-content-center rounded-lg bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-gradient-to-br focus:outline-none focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-800'
-            >
-              Home
-            </Link>
-            <Link
-              to='/box'
-              className='place-content-center rounded-lg bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-gradient-to-br focus:outline-none focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-800'
-            >
-              Gacha
-            </Link>
-          </div>
-        )}
+      <div className={`flex md:order-2`}>
+        <Button
+          onClick={() => {
+            ClickConnectToMetaMask().then(ClickConnectToChainNetwork);
+          }}
+          className={`${!isLogin || !chainNetworkConnected ? 'bg-orange-500 enabled:hover:bg-orange-600' : ''} focus:ring-0`}
+        >
+          {!isLogin ? (
+            'Connect to Metamask'
+          ) : isLogin && !chainNetworkConnected ? (
+            'Connect to Network'
+          ) : (
+            <p className='w-20 truncate sm:w-fit'>{address.slice(0, 17) + '...'}</p>
+          )}
+        </Button>
       </div>
-    </>
+      <Navbar.Collapse>
+        <Link to='/' preventScrollReset={true}>
+          <Navbar.Link as='div' active={location.pathname == '/'} className='text-xl font-semibold'>
+            Home
+          </Navbar.Link>
+        </Link>
+        <Link to='/box' preventScrollReset={true}>
+          <Navbar.Link
+            as='div'
+            active={location.pathname == '/box'}
+            className='text-xl font-semibold'
+          >
+            Gacha
+          </Navbar.Link>
+        </Link>
+        {/* <Link to='/random' preventScrollReset={true}>
+          <Navbar.Link
+            as='div'
+            active={location.pathname == '/random'}
+            className='text-xl font-semibold'
+          >
+            Random
+          </Navbar.Link>
+        </Link> */}
+      </Navbar.Collapse>
+    </Navbar>
   );
 };
 

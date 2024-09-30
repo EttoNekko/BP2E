@@ -1,5 +1,7 @@
 uncheck stuff?
 
+ipfs for stuff
+
 ## Money generator
 
 remove import from openzepplin ERC721
@@ -9,10 +11,6 @@ remove import from openzepplin ERC721
 if user pay more than needed
 
 ## Rand oracle
-
-Fix request and return number params
-
-fix interface between pieceGenerator and this
 
 chainlink implementation too
 

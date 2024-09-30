@@ -1,4 +1,6 @@
 type Box {
+  _id: String!
+  boxId: Int!
   goldChance: Int
   silverChance: Int
   bronzeChance: Int
@@ -6,6 +8,7 @@ type Box {
 }
 
 type Query {
-  boxes: [User]
-  box(id: String!): Box
+  boxes: [Box]
+  box(boxId: Int!): Box
+  boxById(_id: String!): Box
 }

@@ -207,6 +207,11 @@ export default [
       },
       {
         internalType: "uint256",
+        name: "NFTamount",
+        type: "uint256"
+      },
+      {
+        internalType: "uint256",
         name: "amountRequired",
         type: "uint256"
       }
@@ -944,6 +949,29 @@ export default [
   {
     inputs: [
       {
+        internalType: "address[]",
+        name: "users",
+        type: "address[]"
+      },
+      {
+        internalType: "uint8",
+        name: "boxId",
+        type: "uint8"
+      },
+      {
+        internalType: "uint8",
+        name: "amount",
+        type: "uint8"
+      }
+    ],
+    name: "ownerGiveBoxes",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    inputs: [
+      {
         internalType: "address",
         name: "user",
         type: "address"
@@ -1221,6 +1249,19 @@ export default [
     type: "function"
   },
   {
+    inputs: [],
+    name: "stepsRequired",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256"
+      }
+    ],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
     inputs: [
       {
         internalType: "bytes4",
@@ -1275,7 +1316,7 @@ export default [
     inputs: [
       {
         internalType: "uint256",
-        name: "",
+        name: "tokenId",
         type: "uint256"
       }
     ],

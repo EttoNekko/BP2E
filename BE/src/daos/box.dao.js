@@ -5,7 +5,12 @@ exports.getBoxes = async () => {
   return result;
 };
 
-exports.getBox = async ({ id }) => {
-  const result = await Box.findById(id);
+exports.getBox = async ({ boxId }) => {
+  const result = await Box.findOne({ boxId: boxId });
+  return result;
+};
+
+exports.getBoxById = async ({ _id }) => {
+  const result = await Box.findById(_id);
   return result;
 };

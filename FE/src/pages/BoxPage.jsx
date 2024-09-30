@@ -1,97 +1,65 @@
-import { React, useEffect, useState } from 'react';
-import { providers, utils, Contract } from 'ethers';
-import { userInfo } from '../context/UserContext';
-import pieceGeneratorAbi from '../contracts/PieceGeneratorAbi';
-import BoxDetail from '../components/BoxDetail';
+import { React, useState } from 'react';
+import BoxDetail from '../components/Box/BoxDetail';
+import { useSelector, useDispatch } from 'react-redux';
+import { updateCurrentBoxesOwned } from '../redux/slices/accountSlice';
+import {} from '../Blockchain/contracts/methods/pieceGenerator';
+import { BoxCard } from '../components/Box/BoxCard';
 
 const BoxPage = () => {
-  const { user, account, setAccount, blockchain } = userInfo();
-  const provider = new providers.Web3Provider(window.ethereum);
+  const dispatch = useDispatch();
+  const { isLogin, isLoading, chainNetworkConnected } = useSelector((state) => state.user);
+
+  const currentBoxesOwned = useSelector((state) => state.account.currentBoxesOwned);
 
   const [toggleBoxDetail, setToggleBoxDetail] = useState(false);
   const [currentBoxId, setCurrentBoxId] = useState(0);
 
-  const getAccountBoxInfo = async () => {
-    const signer = provider.getSigner();
-    const signerAddress = await signer.getAddress();
-    const pieceGeneratorContract = new Contract(
-      import.meta.env.VITE_pieceGenerator_Address,
-      pieceGeneratorAbi,
-      signer,
-    );
-    let currentBoxesOwned = [];
-    const boxTypeCount = await pieceGeneratorContract.boxTypeCount();
-    for (let i = 0; i < boxTypeCount; i++) {
-      let { GOLD, SILVER, BRONZE, price } =
-        await pieceGeneratorContract.boxTypes(i);
-      let quantity = utils.formatUnits(
-        await pieceGeneratorContract.boxesOwned(signerAddress, i),
-        0,
-      );
-      currentBoxesOwned.push({
-        boxId: i,
-        boxType: {
-          GOLD,
-          SILVER,
-          BRONZE,
-          price: utils.formatEther(price),
-        },
-        quantity,
-      });
-    }
-    setAccount({
-      ...account,
-      currentBoxesOwned,
-    });
-  };
-
-  useEffect(() => {
-    if (user.isLogin && user.chainNetworkConnected) {
-      getAccountBoxInfo();
-    }
-  }, [user.isLogin, user.chainNetworkConnected]);
-
   return (
     <>
-      {!user.isLogin ? (
+      {!isLogin || !chainNetworkConnected ? (
         <p className='h-screen w-screen place-content-center text-center'>
-          No box here lol
+          Connect to Metamask to play
         </p>
       ) : (
         <>
-          {account.currentBoxesOwned.length <= 0 ? (
-            <p className='h-screen w-screen place-content-center text-center'>
-              Loading box
-            </p>
+          {isLoading ? (
+            <p className='h-screen w-screen place-content-center text-center'>Loading box</p>
           ) : (
-            <ul className='flex w-screen flex-wrap justify-evenly gap-10 p-10'>
-              {account.currentBoxesOwned.map((b) => {
-                return (
-                  <li
-                    key={b.boxId}
-                    className='bg-pink-500 text-center text-base'
-                    onClick={() => {
-                      setCurrentBoxId(b.boxId);
-                      setToggleBoxDetail(true);
-                    }}
-                  >
-                    <img
-                      src='src/assets/mystery_box.png'
-                      alt=''
-                      className='block w-full object-scale-down align-baseline'
+            <div className='gray-padding h-screen w-screen px-5 pt-6 lg:px-32 xl:px-48'>
+              <ul className='flex w-full flex-wrap justify-evenly gap-10'>
+                {currentBoxesOwned.map((b) => {
+                  return (
+                    // <li
+                    //   key={b.boxId}
+                    //   className='bg-pink-500 text-center text-base'
+                    // onClick={() => {
+                    //   setCurrentBoxId(b.boxId);
+                    //   setToggleBoxDetail(true);
+                    // }}
+                    // >
+                    //   <img
+                    //     src='src/assets/mystery_box.png'
+                    //     alt=''
+                    //     className='block w-full object-scale-down align-baseline'
+                    //   />
+                    //   <p className='align-baseline'>Box Id: {b.boxId}</p>
+                    //   <p className='align-baseline'>quantity: {b.quantity}</p>
+                    // </li>
+                    <BoxCard
+                      key={b.boxId}
+                      boxId={b.boxId}
+                      onClick={() => {
+                        setCurrentBoxId(b.boxId);
+                        setToggleBoxDetail(true);
+                      }}
                     />
-                    <p className='align-baseline'>Box Id: {b.boxId}</p>
-                    <p className='align-baseline'>quantity: {b.quantity}</p>
-                  </li>
-                );
-              })}
-            </ul>
+                  );
+                })}
+              </ul>
+            </div>
           )}
           {toggleBoxDetail ? (
-            <BoxDetail
-              boxId={currentBoxId}
-              setToggleBoxDetail={setToggleBoxDetail}
-            ></BoxDetail>
+            <BoxDetail boxId={currentBoxId} setToggleBoxDetail={setToggleBoxDetail}></BoxDetail>
           ) : null}
         </>
       )}

@@ -13,8 +13,15 @@ const userSchema = new mongoose.Schema(
     },
     userName: {
       type: String,
-      default: this.address,
+      default: function () {
+        return this.address;
+      },
     },
+    gmail: {
+      type: String,
+      default: null,
+    },
+    googleRefreshToken: String,
     currentGold: {
       type: Number,
       default: 0,
@@ -35,13 +42,16 @@ const userSchema = new mongoose.Schema(
       default: 0,
       min: 0,
     },
+    currentMoney: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
     currentBoxesOwned: [
       {
-        boxType: {
-          type: mongoose.Types.ObjectId,
+        boxId: {
+          type: Number,
           required: true,
-          unique: true,
-          ref: 'box',
         },
         quantity: {
           type: Number,
@@ -50,11 +60,16 @@ const userSchema = new mongoose.Schema(
         },
       },
     ],
+    totalStep: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
     runHistory: [
       {
         date: {
-          type: Date,
-          default: Date.now(),
+          type: String,
+          default: new Date().toISOString(),
         },
         steps: Number,
       },
@@ -62,6 +77,13 @@ const userSchema = new mongoose.Schema(
   },
   { timestamps: true, virtuals: true },
 );
+
+userSchema.pre('save', async function (next) {
+  const user = this;
+  if (user.isModified('userName')) user.userName = user.address;
+
+  next();
+});
 
 const User = mongoose.model('user', userSchema);
 

@@ -1,13 +1,17 @@
 import React from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, ScrollRestoration } from 'react-router-dom';
 import NavBar from '../components/NavBar';
-import UserContextProvider from '../context/UserContext';
 
 const MainLayout = () => {
   return (
     <>
       <NavBar />
       <Outlet />
+      <ScrollRestoration
+        getKey={(location, matches) => {
+          return location.pathname;
+        }}
+      />
     </>
   );
 };

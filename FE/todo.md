@@ -1,13 +1,19 @@
 ## Nav Bar
 
+fetch again instead of raw update
+
 change nav for mobile
 decide on change pages effect
 
 ## HomePage
 
-connect with database and show account info
-disable combine when having transaction
-metamask network connect refuse popup
+
+validate user input
+
+handle error catching
+update state when finish trans
+
+disable button when async to backend
 
 ## BoxDetail
 
@@ -17,20 +23,13 @@ condition before buy and open
 pop up for piece get
 transaction pending => transaction chain
 
+## Blockchain 
+turn event on off
+
 ## global
-
-turn off event how
-
-popup noti design for screen
-
-Metamask multiple account reponsive
 
 metamask error code message popup
 
 if revert, what happen
-
-store provider, reuse request to Meta mask
-
-synchronize address, user name, database and stuff
 
 async UI with blockchain

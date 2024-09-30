@@ -1,3 +1,14 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer utilities {
+  .gray-padding {
+    background-image: linear-gradient(to bottom, white 0%, white 100%),
+      linear-gradient(to left, rgba(22, 22, 22, 0) 92%, #c3ddfd 100%),
+      linear-gradient(to right, rgba(22, 22, 22, 0) 92%, #c3ddfd 100%);
+    background-clip: content-box, padding-box, padding-box;
+    /* background: linear-gradient(to left, rgba(22, 22, 22, 0) 90%, #c3ddfd 100%),
+      linear-gradient(to right, rgba(22, 22, 22, 0) 90%, #c3ddfd 100%); */
+  }
+}

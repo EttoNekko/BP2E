@@ -1,7 +1,9 @@
 # Overall
-cronjob for generate based on NFT everyday
+prepare for real deploy instead local
+
 cronjob for catching data from blockchain
 Steps Health Api
+error handling in express
 
 # Models
 validate user 
@@ -10,4 +12,4 @@ virtual?
 # GraphQL
 how to send HTTP request with graphql
 
-mutation uncomment
+let which field can mutate

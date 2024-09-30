@@ -2,6 +2,11 @@ const mongoose = require('mongoose');
 
 const boxSchema = new mongoose.Schema(
   {
+    boxId: {
+      type: Number,
+      required: true,
+      unique: true,
+    },
     goldChance: {
       type: Number,
       required: true,

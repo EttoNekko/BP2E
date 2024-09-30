@@ -34,7 +34,7 @@ contract MoneyGenerator is ERC721A("FreeMoneyEveryday", "FME"), Ownable {
     }
 
     function _baseURI() internal pure override returns (string memory) {
-        return "placeholder";
+        return "https://api.coolcatsnft.com/cat/";
     }
 
     function changeMoneyAddress(address newMoneyAddress) public onlyOwner {

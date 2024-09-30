@@ -1,16 +1,26 @@
 type User {
+  _id: String!
   address: String!
   userName: String
+  gmail: String
   currentGold: Int
   currentSilver: Int
   currentBronze: Int
   currentNFT: Int
-  currentBoxesOwned: [CurrentBoxOwned]
+  currentMoney: Int
+  currentBoxesOwned: [currentBox]
+  totalStep: Int
   runHistory: [runTime]
 }
 
-type CurrentBoxOwned {
-  boxType: Box!
+type currentBox {
+  boxId: Int!
+  box: Box
+  quantity: Int
+}
+
+input currentBoxInput {
+  boxId: Int!
   quantity: Int
 }
 
@@ -19,12 +29,31 @@ type runTime {
   steps: Int
 }
 
-type Query {
-  users: [User]
-  userById(id: String!): User
-  userByAdress(address: String!): User
+input runTimeInput {
+  date: String
+  steps: Int
 }
 
-# type Mutation {
+input UserInput {
+  address: String
+  userName: String
+  currentGold: Int
+  currentSilver: Int
+  currentBronze: Int
+  currentNFT: Int
+  currentMoney: Int
+  currentBoxesOwned: [currentBoxInput]
+  totalStep: Int
+  runHistory: [runTimeInput]
+}
 
-# }
+type Query {
+  users: [User]
+  userById(_id: String!): User
+  userByAddress(address: String!): User
+}
+
+type Mutation {
+  userById(_id: String!, input: UserInput): User
+  userByAddress(address: String!, input: UserInput): User
+}
