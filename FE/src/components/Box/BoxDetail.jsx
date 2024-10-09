@@ -12,7 +12,11 @@ import { buyBox, openBox } from '../../Blockchain/contracts/methods/pieceGenerat
 import pieceGeneratorAbi from '../../Blockchain/contracts/Abi/PieceGeneratorAbi';
 import { finishTransaction, haveTransaction } from '../../redux/slices/userSlice';
 import { notifyReward, notifyUser } from '../../context/UserContext';
-import { getAccountETHBalance, pieceGeneratorContract } from '../../Blockchain/Metamask';
+import {
+  getAccountETHBalance,
+  handleTransRefuse,
+  pieceGeneratorContract,
+} from '../../Blockchain/Metamask';
 import { Card, CardHeader, Typography } from '@material-tailwind/react';
 const UPDATE = {
   GOLD: 0,
@@ -27,7 +31,7 @@ const BoxDetail = ({ boxId, setToggleBoxDetail }) => {
   const dispatch = useDispatch();
   const isTransactioning = useSelector((state) => state.user.isTransactioning);
 
-  const { address, balanceETH, currentGold, currentSilver, currentBronze, currentBoxesOwned } =
+  const { address, balance, currentGold, currentSilver, currentBronze, currentBoxesOwned } =
     useSelector((state) => state.account);
 
   const box = currentBoxesOwned[boxId];
@@ -45,7 +49,9 @@ const BoxDetail = ({ boxId, setToggleBoxDetail }) => {
   const ClickBuyBox = async () => {
     dispatch(haveTransaction());
 
-    if (balanceETH < box.boxType.price) {
+    console.log(balance, box.boxType.price);
+
+    if (balance < box.boxType.price) {
       notifyUser('Not enough money for box');
       dispatch(finishTransaction());
       return;
@@ -76,6 +82,7 @@ const BoxDetail = ({ boxId, setToggleBoxDetail }) => {
     }
     await openBox(boxId);
     let listenForPieceGot = async (user, pieceGot, amount) => {
+      console.log(user, pieceGot, amount);
       if (!address == user) return;
       switch (pieceGot) {
         case UPDATE.GOLD:
@@ -161,14 +168,18 @@ const BoxDetail = ({ boxId, setToggleBoxDetail }) => {
         <div className='absolute bottom-7 left-0 flex w-full justify-evenly'>
           <button
             disabled={isTransactioning}
-            onClick={ClickBuyBox}
+            onClick={() => {
+              ClickBuyBox().catch((err) => handleTransRefuse(err));
+            }}
             className='w-1/3 rounded-md bg-red-500 p-2 disabled:bg-gray-500'
           >
             Buy
           </button>
           <button
             disabled={isTransactioning}
-            onClick={ClickOpenBox}
+            onClick={() => {
+              ClickOpenBox().catch((err) => handleTransRefuse(err));
+            }}
             className='w-1/3 rounded-md bg-blue-500 p-2 disabled:bg-gray-500'
           >
             Open X3

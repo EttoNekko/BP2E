@@ -101,5 +101,5 @@ exports.getGoogleFitUserStep = async (req, res, next) => {
     requestBody: data,
     fields: 'bucket(dataset(point(value(intVal))))',
   });
-  res.json(result);
+  res.json(result.data);
 };

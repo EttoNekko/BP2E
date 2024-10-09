@@ -26,7 +26,7 @@ const BoxPage = () => {
             <p className='h-screen w-screen place-content-center text-center'>Loading box</p>
           ) : (
             <div className='gray-padding h-screen w-screen px-5 pt-6 lg:px-32 xl:px-48'>
-              <ul className='flex w-full flex-wrap justify-evenly gap-10'>
+              <ul className='flex w-full flex-wrap justify-evenly gap-12'>
                 {currentBoxesOwned.map((b) => {
                   return (
                     // <li

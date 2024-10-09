@@ -3,7 +3,7 @@ import PieceGeneratorAbi from '../contracts/Abi/PieceGeneratorAbi';
 import MoneyGeneratorAbi from '../contracts/Abi/MoneyGeneratorAbi';
 import MyMoneyAbi from '../contracts/Abi/MyMoneyAbi';
 import store from '../../redux/store';
-import { resetUser } from '../../redux/slices/userSlice';
+import { finishTransaction, resetUser } from '../../redux/slices/userSlice';
 import { notifyUser } from '../../context/UserContext';
 
 let provider = new providers.Web3Provider(window.ethereum, 'any');
@@ -17,6 +17,7 @@ const metamaskEvent = () => {
   provider.provider // Or window.ethereum if you don't support EIP-6963.
     .on('accountsChanged', () => {
       store.dispatch(resetUser());
+      // window.location.reload();
     });
   provider.provider // Or window.ethereum if you don't support EIP-6963.
     .on('chainChanged', (chainId) => {
@@ -86,6 +87,19 @@ export const connectToChainNetwork = async () => {
       errMess ? notifyUser(errMess) : null;
       throw err;
     });
+};
+
+export const handleTransRefuse = async (err) => {
+  let errMess = 'okay';
+  console.log(err);
+  if (err.code === 'ACTION_REJECTED') {
+    // ethhers action rejected error.
+    // If this happens, the user rejected the transaction request.
+    errMess = 'okay? you no play';
+  }
+  notifyUser(errMess);
+  store.dispatch(finishTransaction());
+  return;
 };
 
 export const connectNewSigner = async () => {

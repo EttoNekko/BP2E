@@ -18,6 +18,7 @@ import { notifyUser } from '../context/UserContext';
 import MTNumberInput from '../components/Input/MTNumberInput';
 import { mutateUserByAddress } from '../graphql/user.gql';
 import { redirect } from 'react-router-dom';
+import { handleTransRefuse } from '../Blockchain/Metamask';
 // import { connectNewSigner } from '../Blockchain/Metamask';
 
 const cHRTheme = {
@@ -142,6 +143,7 @@ const HomePage = () => {
     if (isLogin && chainNetworkConnected) {
       // connectNewSigner();
       setInputUserName(userName);
+      setIsPieceSelect(false);
     }
   }, [isLogin, chainNetworkConnected, userName]);
 
@@ -279,7 +281,9 @@ const HomePage = () => {
                     </div>
 
                     <button
-                      onClick={ClickCombinePieces}
+                      onClick={() => {
+                        ClickCombinePieces().catch((err) => handleTransRefuse(err));
+                      }}
                       disabled={isTransactioning}
                       className='mx-auto block w-32 rounded-md bg-yellow-300 p-2 text-center text-base text-white hover:bg-yellow-400 disabled:bg-gray-500'
                     >
